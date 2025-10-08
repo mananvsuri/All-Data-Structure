@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Data Structure Visualizer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app__header">
+      <h1>All Data Structure Visualizer</h1>
+      <div class="controls">
+        <label for="ds-select">Data Structure</label>
+        <select id="ds-select">
+          <option value="rbt">Red-Black Tree</option>
+          <option value="binomial">Binomial Heap</option>
+          <option value="fibonacci">Fibonacci Heap</option>
+        </select>
+
+        <input id="key-input" type="number" placeholder="key" />
+        <input id="newkey-input" type="number" placeholder="new key (decrease)" />
+
+        <button id="op-insert">Insert</button>
+        <button id="op-delete" title="delete by key (RBT only)">Delete</button>
+        <button id="op-findmin">Find Min</button>
+        <button id="op-removemin">Remove Min</button>
+        <button id="op-decrease">Decrease Key</button>
+        <button id="op-clear">Clear</button>
+      </div>
+    </header>
+
+    <main class="app__main">
+      <svg id="viz" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet"></svg>
+      <aside class="app__sidebar">
+        <div class="info">
+          <h3>Info</h3>
+          <div id="info-panel"></div>
+        </div>
+        <div class="legend">
+          <h3>Legend</h3>
+          <ul>
+            <li><span class="legend__dot legend__dot--black"></span> RBT: Black node</li>
+            <li><span class="legend__dot legend__dot--red"></span> RBT: Red node</li>
+            <li><span class="legend__dot legend__dot--blue"></span> Heap root</li>
+          </ul>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Initialize after DOM ready
+    window.addEventListener('DOMContentLoaded', () => {
+      window.App && window.App.init();
+    });
+  </script>
+</body>
+</html>
+
+
