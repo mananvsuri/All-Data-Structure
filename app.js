@@ -290,7 +290,17 @@ window.App = (function() {
     function drawNode(cx, cy, key, fill) {
       const g = createSvgEl('g', { class: 'node' });
       const c = createSvgEl('circle', { cx, cy, r: 16, fill });
-      const t = createSvgEl('text', { x: cx, y: cy + 4, 'text-anchor': 'middle' }); t.textContent = key;
+      const t = createSvgEl('text', {
+        x: cx,
+        y: cy,
+        'text-anchor': 'middle',
+        'dominant-baseline': 'middle',
+        fill: '#ffffff',
+        stroke: 'rgba(0,0,0,0.55)',
+        'stroke-width': '0.8',
+        style: 'paint-order: stroke fill;'
+      });
+      t.textContent = key;
       g.appendChild(c); g.appendChild(t); v.appendChild(g);
     }
     place(root, 600, 40, totalWidth * nodeGap);
