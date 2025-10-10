@@ -300,6 +300,35 @@ button:active {
   border-color: #3b82f6;
 }
 
+.legend__dot--orange {
+  background: #f59e0b;
+  border-color: #d97706;
+  border-width: 3px;
+}
+
+.legend__line {
+  width: 20px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+
+.legend__line--purple {
+  background: repeating-linear-gradient(
+    90deg,
+    #8b5cf6 0px,
+    #8b5cf6 5px,
+    transparent 5px,
+    transparent 10px
+  );
+  opacity: 0.7;
+}
+
+.legend__line--orange {
+  background: #f59e0b;
+}
+
 #viz circle {
   transition: all 0.3s ease;
 }

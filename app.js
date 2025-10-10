@@ -337,29 +337,177 @@ window.App = (function() {
 
   function renderFibonacci(heap) {
     clearSvg(); const v = svg(); setInfo(`Min = ${heap.findMin() ?? 'N/A'}`);
-    // Draw root list as a circle row, then children downward
-    const roots = [];
-    if (heap.min) { let r = heap.min; do { roots.push(r); r = r.right; } while (r !== heap.min); }
-    let x = 100; const y = 80; const xStep = 160; const levelGap = 80; const nodeGap = 36;
-    function drawSubtree(node, baseX, baseY) {
-      const g = createSvgEl('g', { class: 'node' });
-      const c = createSvgEl('circle', { cx: baseX, cy: baseY, r: 16, fill: '#60a5fa' });
-      const t = createSvgEl('text', { x: baseX, y: baseY + 4, 'text-anchor': 'middle' }); t.textContent = node.key;
-      g.appendChild(c); g.appendChild(t); v.appendChild(g);
-      if (node.child) {
-        const children = [];
-        let ch = node.child; do { children.push(ch); ch = ch.right; } while (ch !== node.child);
-        const total = children.length;
-        children.forEach((child, i) => {
-          const cx = baseX + (i - (total - 1) / 2) * nodeGap * 2;
-          const edge = createSvgEl('line', { x1: baseX, y1: baseY + 16, x2: cx, y2: baseY + levelGap - 16, class: 'edge' });
-          edge.setAttribute('stroke', '#64748b'); edge.setAttribute('stroke-width', '2.5'); edge.setAttribute('stroke-linecap', 'round');
-          v.appendChild(edge);
-          drawSubtree(child, cx, baseY + levelGap);
-        });
-      }
+    
+    if (!heap.min) {
+      setInfo('Empty Fibonacci heap');
+      return;
     }
-    roots.forEach(r => { drawSubtree(r, x, y); x += xStep; });
+
+    // Collect all root nodes in order
+    const roots = [];
+    let r = heap.min;
+    do { 
+      roots.push(r); 
+      r = r.right; 
+    } while (r !== heap.min);
+
+    // Draw root list in a straight line (like before)
+    let x = 100; const y = 80; const xStep = 160; const levelGap = 80; const nodeGap = 36;
+    const rootPositions = new Map();
+    
+    // Store positions for each root node
+    roots.forEach((root, i) => {
+      const rootX = x + i * xStep;
+      rootPositions.set(root, { x: rootX, y: y });
+    });
+
+    // Draw circular connections between root nodes (showing doubly-linked list)
+    roots.forEach((root, i) => {
+      const nextRoot = roots[(i + 1) % roots.length];
+      const pos1 = rootPositions.get(root);
+      const pos2 = rootPositions.get(nextRoot);
+      
+      // Draw connection line above the nodes
+      const line = createSvgEl('line', {
+        x1: pos1.x, y1: pos1.y - 30,
+        x2: pos2.x, y2: pos2.y - 30,
+        class: 'fib-circular-edge'
+      });
+      line.setAttribute('stroke', '#8b5cf6');
+      line.setAttribute('stroke-width', '3');
+      line.setAttribute('stroke-dasharray', '5,5');
+      line.setAttribute('opacity', '0.7');
+      v.appendChild(line);
+    });
+
+    // Draw minimum pointer
+    const minPos = rootPositions.get(heap.min);
+    const pointerX = minPos.x;
+    const pointerY = minPos.y - 60;
+    
+    // Draw pointer line
+    const pointerLine = createSvgEl('line', {
+      x1: pointerX, y1: pointerY,
+      x2: minPos.x, y2: minPos.y - 16,
+      class: 'min-pointer'
+    });
+    pointerLine.setAttribute('stroke', '#f59e0b');
+    pointerLine.setAttribute('stroke-width', '4');
+    pointerLine.setAttribute('stroke-linecap', 'round');
+    v.appendChild(pointerLine);
+    
+    // Draw pointer arrow
+    const arrow = createSvgEl('polygon', {
+      points: `${minPos.x},${minPos.y - 20} ${minPos.x - 8},${minPos.y - 8} ${minPos.x + 8},${minPos.y - 8}`,
+      class: 'min-pointer-arrow'
+    });
+    arrow.setAttribute('fill', '#f59e0b');
+    v.appendChild(arrow);
+    
+    // Draw "MIN" label
+    const minLabel = createSvgEl('text', {
+      x: pointerX, y: pointerY - 10,
+      'text-anchor': 'middle',
+      class: 'min-label'
+    });
+    minLabel.setAttribute('fill', '#f59e0b');
+    minLabel.setAttribute('font-weight', 'bold');
+    minLabel.setAttribute('font-size', '14');
+    minLabel.textContent = 'MIN';
+    v.appendChild(minLabel);
+
+    // Draw root nodes
+    roots.forEach(root => {
+      const pos = rootPositions.get(root);
+      const isMin = root === heap.min;
+      
+      const g = createSvgEl('g', { class: 'node' });
+      const c = createSvgEl('circle', { 
+        cx: pos.x, cy: pos.y, r: 18, 
+        fill: isMin ? '#f59e0b' : '#60a5fa',
+        stroke: isMin ? '#d97706' : '#3b82f6',
+        'stroke-width': isMin ? '3' : '2'
+      });
+      const t = createSvgEl('text', { 
+        x: pos.x, y: pos.y + 5, 
+        'text-anchor': 'middle',
+        fill: '#ffffff',
+        'font-weight': 'bold'
+      }); 
+      t.textContent = root.key;
+      g.appendChild(c); g.appendChild(t); v.appendChild(g);
+    });
+
+    // Draw subtrees for each root
+    function drawSubtree(node, baseX, baseY, depth = 0) {
+      if (!node.child) return;
+      
+      const children = [];
+      let ch = node.child;
+      do { 
+        children.push(ch); 
+        ch = ch.right; 
+      } while (ch !== node.child);
+      
+      const total = children.length;
+      const childY = baseY + levelGap;
+      
+      children.forEach((child, i) => {
+        const childX = baseX + (i - (total - 1) / 2) * nodeGap * 2;
+        
+        // Draw parent-child edge
+        const edge = createSvgEl('line', { 
+          x1: baseX, y1: baseY + 18, 
+          x2: childX, y2: childY - 18, 
+          class: 'edge' 
+        });
+        edge.setAttribute('stroke', '#64748b');
+        edge.setAttribute('stroke-width', '2.5');
+        edge.setAttribute('stroke-linecap', 'round');
+        v.appendChild(edge);
+        
+        // Draw child node
+        const g = createSvgEl('g', { class: 'node' });
+        const c = createSvgEl('circle', { 
+          cx: childX, cy: childY, r: 16, 
+          fill: '#60a5fa' 
+        });
+        const t = createSvgEl('text', { 
+          x: childX, y: childY + 4, 
+          'text-anchor': 'middle',
+          fill: '#ffffff',
+          'font-weight': '500'
+        }); 
+        t.textContent = child.key;
+        g.appendChild(c); g.appendChild(t); v.appendChild(g);
+        
+        // Draw circular connections between siblings
+        if (total > 1) {
+          const nextChild = children[(i + 1) % total];
+          const nextChildX = baseX + ((i + 1) % total - (total - 1) / 2) * nodeGap * 2;
+          
+          const siblingLine = createSvgEl('line', {
+            x1: childX + 16, y1: childY,
+            x2: nextChildX - 16, y2: childY,
+            class: 'fib-sibling-edge'
+          });
+          siblingLine.setAttribute('stroke', '#8b5cf6');
+          siblingLine.setAttribute('stroke-width', '2');
+          siblingLine.setAttribute('stroke-dasharray', '3,3');
+          siblingLine.setAttribute('opacity', '0.6');
+          v.appendChild(siblingLine);
+        }
+        
+        // Recursively draw child's subtree
+        drawSubtree(child, childX, childY, depth + 1);
+      });
+    }
+
+    // Draw subtrees for each root
+    roots.forEach(root => {
+      const pos = rootPositions.get(root);
+      drawSubtree(root, pos.x, pos.y);
+    });
   }
 
   // -------------------- Controller --------------------
